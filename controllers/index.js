@@ -31,6 +31,8 @@ var strategy = new JwtStrategy(jwtOptions, function(jwt_payload, next) {
   }
 });
 
+var s = 1;
+
 passport.use(strategy);
 
 
