@@ -2,7 +2,7 @@ const _ = require("lodash");
 const jwt = require('jsonwebtoken');
 const passport = require("passport");
 const passportJWT = require("passport-jwt");
-const helper = require('../helpers/index');
+const helper = require('../helpers/user');
 
 const ExtractJwt = passportJWT.ExtractJwt;
 const JwtStrategy = passportJWT.Strategy;
