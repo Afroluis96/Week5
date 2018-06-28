@@ -23,17 +23,53 @@ jwtOptions.secretOrKey = 'applaudostudios';
 var strategy = new JwtStrategy(jwtOptions, function(jwt_payload, next) {
   console.log('payload received', jwt_payload);
   // usually this would be a database call:
-  var user = users[_.findIndex(users, {id: jwt_payload.id})];
-  if (user) {
-    next(null, user);
-  } else {
-    next(null, false);
-  }
+  
+users.findOne( {where:{id: jwt_payload.id}})
+.then(user =>{
+    if(!user) return Promise.reject({message:"User not found in strategy", statusCode:404});
+    return user;
+})
+.then(user =>{
+    if (user) {
+        next(null, user);
+      } else {
+        next(null, false);
+      }
+})
+.catch((err)=>{
+    res.status(err.statusCode || 500);
+    res.send(err)
+});
+  
 });
 
 
 passport.use(strategy);
 
+const loginProcess =  (req, res) => {
+
+    if(req.body.name && req.body.password){
+      var name = req.body.name;
+      var password = req.body.password;
+    }
+    users.findOne({where:{userName:name}})
+    .then(user => {
+        if(!user) return Promise.reject({message:"User does not existss",statusCode:404});
+        return user;
+    }).then(user=>{
+        if( !user ){
+            res.status(401).send({message:"no such user found"});
+          }
+          if(user.userPassword === password) {
+            var payload = {id: user.userId};
+            var token = jwt.sign(payload, jwtOptions.secretOrKey);
+            res.json({message: "ok", token: token});
+          } else {
+            res.status(401).json({message:"passwords did not match"});
+          }
+    });
+   
+  }
 
 module.exports = (app) =>{
         app.get('/', (req,res) =>{
@@ -41,24 +77,5 @@ module.exports = (app) =>{
 
         });
 
-        app.post("/login", (req, res) => {
-            if(req.body.name && req.body.password){
-              var name = req.body.name;
-              var password = req.body.password;
-            }
-            // usually this would be a database call:
-            var user = users.findOne({whree:{userName:name}});
-            if( !user ){
-              res.status(401).send({message:"no such user found"});
-            }
-          
-            if(user.userPassword === password) {
-              // from now on we'll identify the user by the id and the id is the only personalized value that goes into our token
-              var payload = {id: user.id};
-              var token = jwt.sign(payload, jwtOptions.secretOrKey);
-              res.json({message: "ok", token: token});
-            } else {
-              res.status(401).json({message:"passwords did not match"});
-            }
-          });
+        app.post("/login", loginProcess);
 }
