@@ -17,8 +17,6 @@ jwtOptions.jsonWebOptions = { expiresIn : 28800};
 
 var strategy = new JwtStrategy(jwtOptions, function(jwt_payload, next) {
     console.log('payload received', jwt_payload);
-    // usually this would be a database call:
-    
     helper.findUserById( jwt_payload.id)
     .then(user =>{
         if (user) {

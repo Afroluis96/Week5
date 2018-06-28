@@ -24,9 +24,6 @@ const loginProcess =  (req, res) => {
         res.status(err.statusCode || 500);
         res.send(err)
     });
-
-   
-   
   }
 
 module.exports = (app) =>{
