@@ -1,42 +1,41 @@
-const _ = require("lodash");
-const jwt = require('jsonwebtoken');
-const passport = require("passport");
-const passportJWT = require("passport-jwt");
+const auth = require('../middlewares/login');
+const passport = require('passport');
+const helper = require('../helpers/index');
 
-const ExtractJwt = passportJWT.ExtractJwt;
-const JwtStrategy = passportJWT.Strategy;
+const loginProcess =  (req, res) => {
 
-const dbK = require('../db/index.js');
-const db = dbK();
-
-const users = db.import('../models/users');
-
-let allUsers;
-users.findAll().then(res =>{
-    allUsers = res;
-});
-
-var jwtOptions = {}
-jwtOptions.jwtFromRequest = ExtractJwt.fromAuthHeaderAsBearerToken();
-jwtOptions.secretOrKey = 'tasmanianDevil';
-
-var strategy = new JwtStrategy(jwtOptions, function(jwt_payload, next) {
-  console.log('payload received', jwt_payload);
-  // usually this would be a database call:
-  var user = users[_.findIndex(users, {id: jwt_payload.id})];
-  if (user) {
-    next(null, user);
-  } else {
-    next(null, false);
+    if(req.body.name && req.body.password){
+      var name = req.body.name;
+      var password = req.body.password;
+    }
+   helper.findUserByName(name)
+    .then(user =>{
+        if( !user ){
+            res.status(401).send({message:"no such user found"});
+          }
+          if(user.userPassword === password) {
+           let token = auth.getToken(user.userId);
+           console.log("token: ",token);
+            res.send({message: "ok", token: token});
+          } else {
+            res.status(401).send({message:"passwords did not match"});
+          }
+    }).catch((err)=>{
+        res.status(err.statusCode || 500);
+        res.send(err)
+    });
   }
-});
-
-passport.use(strategy);
-
 
 module.exports = (app) =>{
         app.get('/', (req,res) =>{
-           res.send(allUsers);
+           res.send({message: "Express is up"});
 
-        })
+        });
+
+        app.post("/login", loginProcess);
+
+        app.get("/secret", passport.authenticate('jwt', { session: false }), (req, res)=>{
+            console.log(req.user);
+            res.send("Success! You can not see this without a token");
+          });
 }
