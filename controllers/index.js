@@ -1,44 +1,6 @@
-const _ = require("lodash");
-const jwt = require('jsonwebtoken');
-const passport = require("passport");
-const passportJWT = require("passport-jwt");
-
-const ExtractJwt = passportJWT.ExtractJwt;
-const JwtStrategy = passportJWT.Strategy;
-
-const dbK = require('../db/index.js');
-const db = dbK();
-
-const users = db.import('../models/users');
-
-var jwtOptions = {}
-jwtOptions.jwtFromRequest = ExtractJwt.fromAuthHeaderWithScheme('JWT');
-jwtOptions.secretOrKey = 'applaudostudios';
-
-var strategy = new JwtStrategy(jwtOptions, function(jwt_payload, next) {
-  console.log('payload received', jwt_payload);
-  // usually this would be a database call:
-  
-users.findOne( {where:{userId: jwt_payload.id}})
-.then(user =>{
-    if(!user) return Promise.reject({message:"User not found in strategy", statusCode:404});
-    return user;
-})
-.then(user =>{
-    if (user) {
-        next(null, user);
-      } else {
-        next(null, false);
-      }
-})
-.catch((err)=>{
-    console.log("Error in strategy: ",err);
-});
-  
-});
-
-
-passport.use(strategy);
+const auth = require('../middlewares/login');
+const passport = require('passport');
+const helper = require('../helpers/index');
 
 const loginProcess =  (req, res) => {
 
@@ -46,22 +8,24 @@ const loginProcess =  (req, res) => {
       var name = req.body.name;
       var password = req.body.password;
     }
-    users.findOne({where:{userName:name}})
-    .then(user => {
-        if(!user) return Promise.reject({message:"User does not exists",statusCode:404});
-        return user;
-    }).then(user=>{
+   helper.findUserByName(name)
+    .then(user =>{
         if( !user ){
             res.status(401).send({message:"no such user found"});
           }
           if(user.userPassword === password) {
-            var payload = {id: user.userId};
-            var token = jwt.sign(payload, jwtOptions.secretOrKey);
+           let token = auth.getToken(user.userId);
+           console.log("token: ",token);
             res.send({message: "ok", token: token});
           } else {
             res.status(401).send({message:"passwords did not match"});
           }
+    }).catch((err)=>{
+        res.status(err.statusCode || 500);
+        res.send(err)
     });
+
+   
    
   }
 
@@ -74,6 +38,7 @@ module.exports = (app) =>{
         app.post("/login", loginProcess);
 
         app.get("/secret", passport.authenticate('jwt', { session: false }), (req, res)=>{
+            console.log(req.user);
             res.send("Success! You can not see this without a token");
           });
 }
