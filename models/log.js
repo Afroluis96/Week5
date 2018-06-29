@@ -12,6 +12,10 @@ module.exports = function(sequelize, DataTypes) {
 			allowNull: true,
 			defaultValue: '1'
 		},
+		total: {
+			type: "DOUBLE",
+			allowNull: true
+		},
 		logDate: {
 			type: DataTypes.DATE,
 			allowNull: true,

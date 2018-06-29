@@ -2,6 +2,7 @@
 const dbK = require('../db/index.js');
 const db = dbK();
 let products = db.import('../models/products');
+let log = db.import('../models/log');
 
 
 let addNewProduct = (productName, price, stock) => {
@@ -36,6 +37,14 @@ let updateProduct = (price,productId) => {
         {where:{productId}}
     )
 }
+let reduceStockProduct = (quantity,stock,productId) => {
+    console.log("entering in reduce stock");
+    let newStock = stock - quantity;
+    return products.update(
+        {stock: newStock},
+        {where:{productId}}
+    )
+}
 
 let findProductById = (productId) => {
     return products.findOne({where : {
@@ -46,9 +55,26 @@ let findProductById = (productId) => {
     });
 }
 
+let buyProduct = (quantity,userId,productId,total) => {
+
+    return log.build({
+        productId,
+        userId,
+        quantity,
+        total
+    }).save()
+    .then(product=>{
+        return product;
+    })
+    
+}
+
+
 module.exports = {
     addNewProduct,
     deleteProduct,
     findProductById,
-    updateProduct
+    updateProduct,
+    buyProduct,
+    reduceStockProduct
 }
