@@ -101,7 +101,7 @@ let modifyProduct = (req,res) =>{
             return productHelper.findProductById(id)
             
         }).then(productUpdated =>{
-            res.send(productUpdated);
+            res.send({id:productUpdated.productId, name:productUpdated.productName, price:productUpdated.price, stock:productUpdated.stock});
         })
         .catch((err)=>{
             res.status(err.statusCode || 500);
