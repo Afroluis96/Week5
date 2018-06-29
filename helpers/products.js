@@ -78,6 +78,26 @@ let findLike = (productId, userId) =>{
     });
 }
 
+let likeCounter = (productId) =>{
+    return likes.findAndCountAll({
+        where:{
+            productId
+        }
+    }).then(result =>{
+        console.log("counter: ",result.count)
+        return result.count;
+    });
+}
+
+let addLike = (productId,counter) =>{
+    return products.update(
+        {likes:counter},
+        {where:{productId}}
+    ).then(product =>{
+        return product;
+    });
+}
+
 let like = (productId, userId) =>{
     return likes.build({
         userId,
@@ -110,5 +130,7 @@ module.exports = {
     reduceStockProduct,
     findLike,
     like,
-    dislike
+    dislike,
+    likeCounter,
+    addLike
 }

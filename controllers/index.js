@@ -209,14 +209,32 @@ let likeProduct = (req,res) =>{
     })
     .then( response =>{
         if(!response) return res.status(400).send({message:"Action missed"});
+        return productHelper.likeCounter(instProduct.productId);
+        
+    })
+    .then(result =>{
+        if(!result) return res.status(400).send({message:"Action missed"});
+        return productHelper.addLike(instProduct.productId, result);
+    })
+    .then(liked =>{
+        if(!liked) return res.status(400).send({message:"Action missed"});
         res.send({id:instProduct.productId,name:instProduct.productName, price:instProduct.price, likes: instProduct.like, stock:instProduct.stock});
-    }).catch((err)=>{
+    })
+    .catch((err)=>{
         res.status(err.statusCode || 500);
         res.send(err)
     });
    
 }
 
+let individualProduct = (req,res) =>{
+    const id = req.params.id;
+    productHelper.findProductById(id)
+    .then(product =>{
+        if(!product) return res.status(400).send({message:"Producto not found"});
+        res.send(product);
+    })
+}
 module.exports = (app) =>{
         app.get('/', (req,res) =>{
            res.send({message: "Express is up"});
@@ -224,11 +242,6 @@ module.exports = (app) =>{
         });
 
         app.post("/login", loginProcess);
-
-        app.get("/secret", passport.authenticate('jwt', { session: false }), (req, res)=>{
-            console.log(req.user);
-            res.send("Success! You can not see this without a token");
-          });
 
         app.post("/products",passport.authenticate('jwt', { session: false }),addProduct);
 
@@ -239,4 +252,6 @@ module.exports = (app) =>{
         app.post('/products/:id/buy',passport.authenticate('jwt', { session: false }),buyProduct);
 
         app.post('/products/:id/like',passport.authenticate('jwt', { session: false }),likeProduct);
+
+        app.get('/products/:id',individualProduct);
 }
