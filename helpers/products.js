@@ -29,6 +29,16 @@ let deleteProduct = (productId) => {
     
 }
 
+let updateProduct = (price) => {
+    return products.update({
+        price
+    })
+    .then(product=>{
+        return product;
+    })
+    
+}
+
 let findProductById = (productId) => {
     return products.findOne({where : {
         productId
@@ -41,5 +51,6 @@ let findProductById = (productId) => {
 module.exports = {
     addNewProduct,
     deleteProduct,
-    findProductById
+    findProductById,
+    updateProduct
 }

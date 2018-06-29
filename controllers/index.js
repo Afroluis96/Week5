@@ -81,6 +81,32 @@ deleteProduct = (req,res) =>{
 
 }
 
+let modifyProduct = (req,res) =>{
+    if(!req.body ){
+        console.log('request body not found');
+        return res.sendStatus(400);
+    }
+    const price = req.body.price;
+    if(!isNan(price)){
+        
+        const id = req.params.id;
+        productHelper.findProductById(id)
+        .then(product =>{
+            return productHelper.updateProduct(id);
+        })
+        .then( response => {
+            res.sendStatus(200);
+        }).catch((err)=>{
+            res.status(err.statusCode || 500);
+            res.send(err)
+        });
+    }
+    else{
+        res.status(400).send({message:"Price is not a number"});
+    }
+
+}
+
 
 
 module.exports = (app) =>{
@@ -99,4 +125,6 @@ module.exports = (app) =>{
         app.post("/products",passport.authenticate('jwt', { session: false }),addProduct);
 
         app.delete("/products/:id",passport.authenticate('jwt', { session: false }),deleteProduct );
+
+        app.patch('products/:id',passport.authenticate('jwt', { session: false }),modifyProduct);
 }
