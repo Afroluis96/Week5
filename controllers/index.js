@@ -66,6 +66,23 @@ const loginProcess =  (req, res) => {
 
 }
 
+deleteProduct = (req,res) =>{
+    const id = req.params.id;
+    productHelper.findProductById(id)
+    .then(product =>{
+        return productHelper.deleteProduct(id);
+    })
+    .then( response => {
+        res.sendStatus(200);
+    }).catch((err)=>{
+        res.status(err.statusCode || 500);
+        res.send(err)
+    });
+
+}
+
+
+
 module.exports = (app) =>{
         app.get('/', (req,res) =>{
            res.send({message: "Express is up"});
@@ -80,4 +97,6 @@ module.exports = (app) =>{
           });
 
         app.post("/products",passport.authenticate('jwt', { session: false }),addProduct);
+
+        app.delete("/products/:id",passport.authenticate('jwt', { session: false }),deleteProduct );
 }
