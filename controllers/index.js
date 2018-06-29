@@ -67,6 +67,14 @@ const loginProcess =  (req, res) => {
 }
 
 deleteProduct = (req,res) =>{
+    if(!req.user){
+        console.log('Not authorize');
+        return res.sendStatus(401);
+    }
+    if(req.user.isAdmin !== 1){
+        console.log('Not authorize');
+        return res.sendStatus(403);
+    }
     const id = req.params.id;
     productHelper.findProductById(id)
     .then(product =>{
@@ -85,6 +93,14 @@ let modifyProduct = (req,res) =>{
     if(!req.body ){
         console.log('request body not found');
         return res.sendStatus(400);
+    }
+    if(!req.user){
+        console.log('Not authorize');
+        return res.sendStatus(401);
+    }
+    if(req.user.isAdmin !== 1){
+        console.log('Not authorize');
+        return res.sendStatus(403);
     }
     const price = req.body.price;
     if(!isNaN(price)){
@@ -134,4 +150,6 @@ module.exports = (app) =>{
         app.delete("/products/:id",passport.authenticate('jwt', { session: false }),deleteProduct );
 
         app.patch('/products/:id',passport.authenticate('jwt', { session: false }),modifyProduct);
+
+        app.post('products/:id/buy',passport.authenticate('jwt', { session: false }))
 }
