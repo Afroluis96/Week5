@@ -87,16 +87,23 @@ let modifyProduct = (req,res) =>{
         return res.sendStatus(400);
     }
     const price = req.body.price;
-    if(!isNan(price)){
+    if(!isNaN(price)){
         
         const id = req.params.id;
         productHelper.findProductById(id)
-        .then(product =>{
-            return productHelper.updateProduct(id);
+        .then( product => {
+            if(!product) return res.status(400).send({message:"Product not found"});
+            return productHelper.updateProduct(price,id);
+           
         })
-        .then( response => {
-            res.sendStatus(200);
-        }).catch((err)=>{
+        .then((updated)=>{
+            if(!updated) return res.status(400).send({message:"Product not updated"});
+            return productHelper.findProductById(id)
+            
+        }).then(productUpdated =>{
+            res.send(productUpdated);
+        })
+        .catch((err)=>{
             res.status(err.statusCode || 500);
             res.send(err)
         });
@@ -126,5 +133,5 @@ module.exports = (app) =>{
 
         app.delete("/products/:id",passport.authenticate('jwt', { session: false }),deleteProduct );
 
-        app.patch('products/:id',passport.authenticate('jwt', { session: false }),modifyProduct);
+        app.patch('/products/:id',passport.authenticate('jwt', { session: false }),modifyProduct);
 }

@@ -29,14 +29,12 @@ let deleteProduct = (productId) => {
     
 }
 
-let updateProduct = (price) => {
-    return products.update({
-        price
-    })
-    .then(product=>{
-        return product;
-    })
-    
+let updateProduct = (price,productId) => {
+  
+    return products.update(
+        {price},
+        {where:{productId}}
+    )
 }
 
 let findProductById = (productId) => {
