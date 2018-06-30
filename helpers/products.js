@@ -3,7 +3,7 @@ const dbK = require('../db/index.js');
 const db = dbK();
 let products = db.import('../models/products');
 let log = db.import('../models/log');
-let likes = db.import('../models/likes');
+
 
 
 let addNewProduct = (productName, price, stock) => {
@@ -71,23 +71,6 @@ let buyProduct = (quantity,userId,productId,total) => {
     
 }
 
-let findLike = (productId, userId) =>{
-    return likes.findOne({where :{productId,userId}})
-    .then(like =>{
-        return like;
-    });
-}
-
-let likeCounter = (productId) =>{
-    return likes.findAndCountAll({
-        where:{
-            productId
-        }
-    }).then(result =>{
-        console.log("counter: ",result.count)
-        return result.count;
-    });
-}
 
 let addLike = (productId,counter) =>{
     return products.update(
@@ -98,28 +81,15 @@ let addLike = (productId,counter) =>{
     });
 }
 
-let like = (productId, userId) =>{
-    return likes.build({
-        userId,
-        productId
-    }).save()
-    .then(like =>{
-        return like;
+let findAllProducts = (limit,offset) =>{
+   return products.findAndCountAll({
+        limit,
+        offset,
+        $sort: {id:1}
+    }).then((data) =>{
+       return data;
     });
 }
-
-let dislike = (productId, userId) =>{
-    return likes.destroy({
-        where:{
-            userId,
-        productId
-        }
-    })
-    .then(like =>{
-        return true;
-    });
-}
-
 
 module.exports = {
     addNewProduct,
@@ -128,9 +98,6 @@ module.exports = {
     updateProduct,
     buyProduct,
     reduceStockProduct,
-    findLike,
-    like,
-    dislike,
-    likeCounter,
-    addLike
+    addLike,
+    findAllProducts
 }

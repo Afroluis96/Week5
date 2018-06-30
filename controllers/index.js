@@ -2,6 +2,7 @@ const auth = require('../middlewares/login');
 const passport = require('passport');
 const userHelper = require('../helpers/user');
 const productHelper = require('../helpers/products');
+const likeHelper = require('../helpers/likes');
 
 const loginProcess =  (req, res) => {
 
@@ -196,20 +197,20 @@ let likeProduct = (req,res) =>{
         if(!product) return res.status(400).send({message:"Product not found"});
         instProduct = product;
         
-        return  productHelper.findLike(product.productId,user);
+        return  likeHelper.findLike(product.productId,user);
     })
     .then(like =>{
         if(!like){
             console.log("No existia");
-            return productHelper.like(instProduct.productId, user);
+            return likeHelper.like(instProduct.productId, user);
         } else{
             console.log("existia");
-            return productHelper.dislike(instProduct.productId,user);
+            return likeHelper.dislike(instProduct.productId,user);
         }
     })
     .then( response =>{
         if(!response) return res.status(400).send({message:"Action missed"});
-        return productHelper.likeCounter(instProduct.productId);
+        return likeHelper.likeCounter(instProduct.productId);
         
     })
     .then(result =>{
@@ -235,6 +236,20 @@ let individualProduct = (req,res) =>{
         res.send(product);
     })
 }
+
+let getAllProducts = (req, res) =>{
+    let limit = (req.query.limit !== undefined) ? Number(req.query.limit) : 0;        
+    let page = (req.query.page !== undefined) ? Number(req.query.page) : 1;   
+    let offset = (page-1) * limit;
+    productHelper.findAllProducts(limit,offset)  
+    .then(data =>{
+        let pages = Math.ceil(data.count / limit);
+		offset = limit * (page - 1);
+        let product = data.rows;
+        res.status(200).send({'result': product, 'count': data.count, 'pages': pages});
+    })   
+
+}
 module.exports = (app) =>{
         app.get('/', (req,res) =>{
            res.send({message: "Express is up"});
@@ -254,4 +269,6 @@ module.exports = (app) =>{
         app.post('/products/:id/like',passport.authenticate('jwt', { session: false }),likeProduct);
 
         app.get('/products/:id',individualProduct);
+
+        app.get('/products', getAllProducts);
 }
