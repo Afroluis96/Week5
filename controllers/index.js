@@ -228,26 +228,56 @@ let likeProduct = (req,res) =>{
    
 }
 
-let individualProduct = (req,res) =>{
-    const id = req.params.id;
-    productHelper.findProductById(id)
-    .then(product =>{
-        if(!product) return res.status(400).send({message:"Producto not found"});
-        res.send(product);
-    })
+const individualProduct = (req,res) =>{
+    const parameter = req.params.parameter;
+    if (!isNaN(parameter)){
+        productHelper.findProductById(parameter)
+        .then(product =>{
+            if(!product) return res.status(400).send({message:"Product not found"});
+            res.send(product);
+        }).catch((err)=>{
+            res.status(err.statusCode || 500);
+            res.send(err)
+        });
+    }else{
+        productHelper.findProductByName(parameter)
+        .then(product =>{
+            if(!product) return res.status(400).send({message:"Product not found"});
+            res.send(product);
+        }).catch((err)=>{
+            res.status(err.statusCode || 500);
+            res.send(err)
+        });
+    }
+    
 }
 
-let getAllProducts = (req, res) =>{
+const getAllProducts = (req, res) =>{
     let limit = (req.query.limit !== undefined) ? Number(req.query.limit) : 0;        
     let page = (req.query.page !== undefined) ? Number(req.query.page) : 1;   
+    let sort = (req.query.sort !== undefined) ? req.query.sort : null;
+    let sortable = null;
+    if(sort === 'name' || sort === 'popularity') {
+        sortable = 'ASC'; 
+        sort = (sort === 'name') ? 'productName':'likes';
+    }
+    else if(sort === '-name' || sort === '-popularity') {
+        sortable = 'DESC';
+        sort = sort.substring(1);
+        sort = (sort === 'name') ? 'productName':'likes';
+    }
+    
     let offset = (page-1) * limit;
-    productHelper.findAllProducts(limit,offset)  
+    productHelper.findAllProducts(limit,offset,sort,sortable)  
     .then(data =>{
         let pages = Math.ceil(data.count / limit);
 		offset = limit * (page - 1);
         let product = data.rows;
         res.status(200).send({'result': product, 'count': data.count, 'pages': pages});
-    })   
+    }).catch((err)=>{
+        res.status(err.statusCode || 500);
+        res.send(err)
+    } ); 
 
 }
 module.exports = (app) =>{

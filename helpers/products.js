@@ -57,6 +57,16 @@ let findProductById = (productId) => {
     });
 }
 
+const findProductByName = (productName) => {
+    return products.findOne({where : {
+        productName,
+        enable:1
+    }}).then(product => {
+        if(!product) return Promise.reject({message:"Product does not exists",statusCode:404});
+        return product;
+    });
+}
+
 let buyProduct = (quantity,userId,productId,total) => {
 
     return log.build({
@@ -65,9 +75,7 @@ let buyProduct = (quantity,userId,productId,total) => {
         quantity,
         total
     }).save()
-    .then(product=>{
-        return product;
-    })
+    
     
 }
 
@@ -76,19 +84,37 @@ let addLike = (productId,counter) =>{
     return products.update(
         {likes:counter},
         {where:{productId}}
-    ).then(product =>{
-        return product;
-    });
+    )
 }
 
-let findAllProducts = (limit,offset) =>{
-   return products.findAndCountAll({
-        limit,
-        offset,
-        $sort: {id:1}
-    }).then((data) =>{
-       return data;
-    });
+const findAllProducts = (limit,offset,sort,sortable) =>{
+    console.log("limit: "+limit+ ", off: "+offset+", sort: "+sort+", sortable: "+sortable);
+    if(sort !== null){
+        
+            return products.findAndCountAll({
+                order : [
+                 [sort,sortable]
+                ],
+                 limit,
+                 offset
+             }).then((data) =>{
+                return data;
+             });
+        
+    }else{
+        return products.findAndCountAll({
+             limit,
+             offset,
+             order : [
+                ["productName","ASC"]
+               ],
+             $sort: {id:1}
+         }).then((data) =>{
+            return data;
+         });
+
+    }
+   
 }
 
 module.exports = {
@@ -99,5 +125,6 @@ module.exports = {
     buyProduct,
     reduceStockProduct,
     addLike,
-    findAllProducts
+    findAllProducts,
+    findProductByName
 }
