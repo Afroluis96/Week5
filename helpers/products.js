@@ -88,33 +88,16 @@ let addLike = (productId,counter) =>{
 }
 
 const findAllProducts = (limit,offset,sort,sortable) =>{
-    console.log("limit: "+limit+ ", off: "+offset+", sort: "+sort+", sortable: "+sortable);
-    if(sort !== null){
-        
-            return products.findAndCountAll({
-                order : [
-                 [sort,sortable]
-                ],
-                 limit,
-                 offset
-             }).then((data) =>{
-                return data;
-             });
-        
-    }else{
-        return products.findAndCountAll({
-             limit,
-             offset,
-             order : [
-                ["productName","ASC"]
-               ],
-             $sort: {id:1}
-         }).then((data) =>{
-            return data;
-         });
-
-    }
    
+        return products.findAndCountAll({
+            order : [
+            [sort,sortable]
+            ],
+            limit,
+            offset
+        }).then((data) =>{
+            return data;
+        });
 }
 
 module.exports = {

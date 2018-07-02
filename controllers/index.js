@@ -253,12 +253,11 @@ const individualProduct = (req,res) =>{
 }
 
 const getAllProducts = (req, res) =>{
-    let limit = (req.query.limit !== undefined) ? Number(req.query.limit) : 0;        
+    let limit = (req.query.limit !== undefined) ? Number(req.query.limit) : 5;        
     let page = (req.query.page !== undefined) ? Number(req.query.page) : 1;   
-    let sort = (req.query.sort !== undefined) ? req.query.sort : null;
-    let sortable = null;
-    if(sort === 'name' || sort === 'popularity') {
-        sortable = 'ASC'; 
+    let sort = (req.query.sort !== undefined) ? req.query.sort : 'name';
+    let sortable = 'ASC';
+    if(sort === 'name' || sort === 'popularity') { 
         sort = (sort === 'name') ? 'productName':'likes';
     }
     else if(sort === '-name' || sort === '-popularity') {
@@ -298,7 +297,7 @@ module.exports = (app) =>{
 
         app.post('/products/:id/like',passport.authenticate('jwt', { session: false }),likeProduct);
 
-        app.get('/products/:id',individualProduct);
+        app.get('/products/:parameter',individualProduct);
 
         app.get('/products', getAllProducts);
 }
